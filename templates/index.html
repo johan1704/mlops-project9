@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Australia Weather Rain Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <h1>🌦️ Australia Weather Rain Prediction</h1>
+        
+        {% if error %}
+        <div class="error-box">
+            ⚠️ {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="post">
+            
+            <!-- SECTION: Date & Location -->
+            <div class="section">
+                <h3>Date & Location</h3>
+                
+                <div class="form-group">
+                    <label for="Date">Date <span class="required">*</span></label>
+                    <input type="date" name="Date" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="Location">Location <span class="required">*</span></label>
+                    <select name="Location" required>
+                        <option value="">-- Select --</option>
+                        {% for option in categorical_options['Location'] %}
+                        <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="RainToday">Rain Today <span class="required">*</span></label>
+                    <select name="RainToday" required>
+                        <option value="">-- Select --</option>
+                        {% for option in categorical_options['RainToday'] %}
+                        <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <!-- SECTION: Temperature -->
+            <div class="section">
+                <h3>🌡️ Temperature (°C)</h3>
+                
+                <div class="form-group">
+                    <label for="MinTemp">Min Temperature</label>
+                    <input type="number" step="0.1" name="MinTemp" placeholder="e.g., 12.5">
+                </div>
+                
+                <div class="form-group">
+                    <label for="MaxTemp">Max Temperature</label>
+                    <input type="number" step="0.1" name="MaxTemp" placeholder="e.g., 25.3">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Temp9am">Temperature 9am</label>
+                    <input type="number" step="0.1" name="Temp9am" placeholder="e.g., 14.2">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Temp3pm">Temperature 3pm</label>
+                    <input type="number" step="0.1" name="Temp3pm" placeholder="e.g., 22.8">
+                </div>
+            </div>
+            
+            <!-- SECTION: Rainfall & Evaporation -->
+            <div class="section">
+                <h3>💧 Rainfall & Evaporation</h3>
+                
+                <div class="form-group">
+                    <label for="Rainfall">Rainfall (mm)</label>
+                    <input type="number" step="0.1" name="Rainfall" placeholder="e.g., 0.6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Evaporation">Evaporation (mm)</label>
+                    <input type="number" step="0.1" name="Evaporation" placeholder="e.g., 4.8">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Sunshine">Sunshine (hours)</label>
+                    <input type="number" step="0.1" name="Sunshine" placeholder="e.g., 8.5">
+                </div>
+            </div>
+            
+            <!-- SECTION: Wind -->
+            <div class="section">
+                <h3>💨 Wind Information</h3>
+                
+                <div class="form-group">
+                    <label for="WindGustDir">Wind Gust Direction</label>
+                    <select name="WindGustDir">
+                        <option value="">-- Optional --</option>
+                        {% for option in categorical_options['WindGustDir'] %}
+                        <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="WindGustSpeed">Wind Gust Speed (km/h)</label>
+                    <input type="number" step="1" name="WindGustSpeed" placeholder="e.g., 44">
+                </div>
+                
+                <div class="form-group">
+                    <label for="WindDir9am">Wind Direction 9am</label>
+                    <select name="WindDir9am">
+                        <option value="">-- Optional --</option>
+                        {% for option in categorical_options['WindDir9am'] %}
+                        <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="WindDir3pm">Wind Direction 3pm</label>
+                    <select name="WindDir3pm">
+                        <option value="">-- Optional --</option>
+                        {% for option in categorical_options['WindDir3pm'] %}
+                        <option value="{{ option }}">{{ option }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="WindSpeed9am">Wind Speed 9am (km/h)</label>
+                    <input type="number" step="1" name="WindSpeed9am" placeholder="e.g., 20">
+                </div>
+                
+                <div class="form-group">
+                    <label for="WindSpeed3pm">Wind Speed 3pm (km/h)</label>
+                    <input type="number" step="1" name="WindSpeed3pm" placeholder="e.g., 24">
+                </div>
+            </div>
+            
+            <!-- SECTION: Humidity & Pressure -->
+            <div class="section">
+                <h3>💦 Humidity & Pressure</h3>
+                
+                <div class="form-group">
+                    <label for="Humidity9am">Humidity 9am (%)</label>
+                    <input type="number" step="1" name="Humidity9am" placeholder="e.g., 71">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Humidity3pm">Humidity 3pm (%)</label>
+                    <input type="number" step="1" name="Humidity3pm" placeholder="e.g., 48">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Pressure9am">Pressure 9am (hPa)</label>
+                    <input type="number" step="0.1" name="Pressure9am" placeholder="e.g., 1017.6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Pressure3pm">Pressure 3pm (hPa)</label>
+                    <input type="number" step="0.1" name="Pressure3pm" placeholder="e.g., 1015.8">
+                </div>
+            </div>
+            
+            <!-- SECTION: Cloud -->
+            <div class="section">
+                <h3>☁️ Cloud Cover</h3>
+                
+                <div class="form-group">
+                    <label for="Cloud9am">Cloud 9am (oktas)</label>
+                    <input type="number" step="1" name="Cloud9am" placeholder="e.g., 6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="Cloud3pm">Cloud 3pm (oktas)</label>
+                    <input type="number" step="1" name="Cloud3pm" placeholder="e.g., 7">
+                </div>
+            </div>
+            
+            <button type="submit">🔮 Predict Rain Tomorrow</button>
+        </form>
+
+        {% if prediction is not none %}
+        <div class="prediction-box {% if prediction == 'Yes' %}rain{% else %}no-rain{% endif %}">
+            <h2>
+                {% if prediction == 'Yes' %}
+                    ☔ It WILL rain tomorrow
+                {% else %}
+                    ☀️ It will NOT rain tomorrow
+                {% endif %}
+            </h2>
+            <p class="confidence">Confidence: {{ "%.2f"|format(confidence) }}%</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        // Set today as default date
+        const dateInput = document.querySelector('input[name="Date"]');
+        if (dateInput && !dateInput.value) {
+            dateInput.valueAsDate = new Date();
+        }
+    </script>
+</body>
+</html>

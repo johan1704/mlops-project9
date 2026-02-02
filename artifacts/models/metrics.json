@@ -1,0 +1,24 @@
+{
+    "train_score": 0.8752121897987228,
+    "test_accuracy": 0.8639156090857651,
+    "test_precision": 0.8567864518770982,
+    "test_recall": 0.8639156090857651,
+    "test_f1_score": 0.8558388595066558,
+    "test_roc_auc": 0.8966094387365227,
+    "cv_mean_accuracy": 0.861409757913675,
+    "cv_std_accuracy": 0.0015637120237129369,
+    "model_params": {
+        "n_estimators": 100,
+        "max_depth": 6,
+        "learning_rate": 0.1,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "random_state": 42,
+        "use_label_encoder": false,
+        "eval_metric": "logloss"
+    },
+    "training_date": "2026-02-01T17:48:47.786237",
+    "n_features": 24,
+    "n_train_samples": 98968,
+    "n_test_samples": 24742
+}
