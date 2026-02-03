@@ -1,93 +1,58 @@
 name: CI/CD Deployment to GKE
-
 on:
   push:
     branches:
       - main
-
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GKE_CLUSTER: "my-cluster"
-  GKE_REGION: "us-central1"           # ✅ Changé REGION → ZONE
+  GKE_REGION: "us-central1"           # ✅ Correct pour un cluster régional
   DEPLOYMENT_NAME: "mlops-app"
   REGISTRY: "us-central1-docker.pkg.dev"
   REPOSITORY: "project-1680e564-23e9-4e9c-b2b/my-repo"
   IMAGE_NAME: "mlops-app"
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # ❌ SUPPRIMER CETTE SECTION :
-    # container:
-    #     image: google/cloud-sdk:latest
-
     steps:
-      # ========================================
-      # 1. CHECKOUT CODE
-      # ========================================
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # ========================================
-      # 2. AUTHENTICATE TO GCP
-      # ========================================
       - name: Authenticate with Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # ========================================
-      # 3. SETUP GCLOUD CLI
-      # ========================================
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      # ========================================
-      # 4. CONFIGURE DOCKER FOR ARTIFACT REGISTRY
-      # ========================================
       - name: Configure Docker
         run: |
           gcloud auth configure-docker ${{ env.REGISTRY }}
 
-      # ========================================
-      # 5. BUILD AND PUSH DOCKER IMAGE
-      # ========================================
       - name: Build and Push Docker Image
         run: |
-          # Build avec 2 tags
           docker build \
             -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest \
             .
-          
-          # Push les 2 tags
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
 
       # ========================================
-      # 6. GET GKE CREDENTIALS
+      # 6. GET GKE CREDENTIALS (CORRIGÉ)
       # ========================================
       - name: Get GKE Credentials
         run: |
           gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} \
-            --zone ${{ env.GKE_ZONE }} \
+            --region ${{ env.GKE_REGION }} \
             --project ${{ env.PROJECT_ID }}
 
-      # ========================================
-      # 7. DEPLOY TO KUBERNETES
-      # ========================================
       - name: Deploy to Kubernetes
         run: |
-          # Apply deployment
           kubectl apply -f kubernetes/deployment.yaml
-          
-          # Update image
           kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
             ${{ env.DEPLOYMENT_NAME }}=${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          
-          # Wait for rollout
           kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
-          
-          # Show status
           kubectl get pods
           kubectl get service mlops-service
