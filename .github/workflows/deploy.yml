@@ -11,6 +11,7 @@ env:
   REGISTRY: "us-central1-docker.pkg.dev"
   REPOSITORY: "project-1680e564-23e9-4e9c-b2b/my-repo"
   IMAGE_NAME: "mlops-app"
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -27,6 +28,22 @@ jobs:
         uses: google-github-actions/setup-gcloud@v2
         with:
           install_components: 'gke-gcloud-auth-plugin'
+
+      # ✅ AJOUT: Donner les permissions Artifact Registry au service account GKE
+      - name: Grant GKE Service Account Access to Artifact Registry
+        run: |
+          # Récupérer le service account du cluster GKE
+          GKE_SA=$(gcloud container clusters describe ${{ env.GKE_CLUSTER }} \
+            --region ${{ env.GKE_REGION }} \
+            --format='value(nodeConfig.serviceAccount)')
+          
+          echo "GKE Service Account: $GKE_SA"
+          
+          # Donner les permissions de lecture sur Artifact Registry
+          gcloud artifacts repositories add-iam-policy-binding my-repo \
+            --location=us-central1 \
+            --member="serviceAccount:$GKE_SA" \
+            --role="roles/artifactregistry.reader"
 
       - name: Configure Docker
         run: |
@@ -52,46 +69,6 @@ jobs:
           kubectl apply -f kubernetes-deployment.yaml
           kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
             ${{ env.DEPLOYMENT_NAME }}=${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          
-          # Attendre avec timeout augmenté et continuer même en cas d'erreur
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=15m || true
-          
-          echo "========================================="
-          echo "DIAGNOSTIC - POD STATUS"
-          echo "========================================="
-          kubectl get pods -l app=mlops-app -o wide
-          
-          echo ""
-          echo "========================================="
-          echo "DIAGNOSTIC - POD DESCRIPTION"
-          echo "========================================="
-          kubectl describe pods -l app=mlops-app
-          
-          echo ""
-          echo "========================================="
-          echo "DIAGNOSTIC - POD LOGS"
-          echo "========================================="
-          POD_NAME=$(kubectl get pods -l app=mlops-app -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
-          if [ ! -z "$POD_NAME" ]; then
-            kubectl logs $POD_NAME --tail=100 || echo "No logs available"
-          else
-            echo "No pods found"
-          fi
-          
-          echo ""
-          echo "========================================="
-          echo "DIAGNOSTIC - DEPLOYMENT DESCRIPTION"
-          echo "========================================="
-          kubectl describe deployment/${{ env.DEPLOYMENT_NAME }}
-          
-          echo ""
-          echo "========================================="
-          echo "DIAGNOSTIC - RECENT EVENTS"
-          echo "========================================="
-          kubectl get events --sort-by='.lastTimestamp' --field-selector involvedObject.name=mlops-app | tail -30
-          
-          echo ""
-          echo "========================================="
-          echo "DIAGNOSTIC - SERVICE STATUS"
-          echo "========================================="
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=15m
+          kubectl get pods
           kubectl get service mlops-service
