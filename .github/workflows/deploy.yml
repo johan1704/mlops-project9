@@ -8,7 +8,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GKE_CLUSTER: "my-cluster"
-  GKE_ZONE: "us-central1-a"           # ✅ Changé REGION → ZONE
+  GKE_REGION: "us-central1"           # ✅ Changé REGION → ZONE
   DEPLOYMENT_NAME: "mlops-app"
   REGISTRY: "us-central1-docker.pkg.dev"
   REPOSITORY: "project-1680e564-23e9-4e9c-b2b/my-repo"
