@@ -17,17 +17,17 @@ jobs:
     
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4  # ✅ Version mise à jour
+        uses: actions/checkout@v4  
 
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2  # ✅ Version mise à jour
+        uses: google-github-actions/auth@v2  
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          install_components: 'gke-gcloud-auth-plugin'  # ✅ Nécessaire pour kubectl
+          install_components: 'gke-gcloud-auth-plugin'  
 
       - name: Configure Docker
         run: |
