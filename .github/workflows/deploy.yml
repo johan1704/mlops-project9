@@ -6,7 +6,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GKE_CLUSTER: "my-cluster"
-  GKE_REGION: "us-central1"           # ✅ Correct pour un cluster régional
+  GKE_REGION: "us-central1"
   DEPLOYMENT_NAME: "mlops-app"
   REGISTRY: "us-central1-docker.pkg.dev"
   REPOSITORY: "project-1680e564-23e9-4e9c-b2b/my-repo"
@@ -25,6 +25,8 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'  # ✅ AJOUT IMPORTANT
 
       - name: Configure Docker
         run: |
@@ -39,9 +41,6 @@ jobs:
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
 
-      # ========================================
-      # 6. GET GKE CREDENTIALS (CORRIGÉ)
-      # ========================================
       - name: Get GKE Credentials
         run: |
           gcloud container clusters get-credentials ${{ env.GKE_CLUSTER }} \
@@ -51,4 +50,8 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f kubernetes-deployment.yaml
-          kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$IMAGE:$GITHUB_SHA
+          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
+            ${{ env.DEPLOYMENT_NAME }}=${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
+          kubectl get pods
+          kubectl get service mlops-service
