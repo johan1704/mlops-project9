@@ -51,6 +51,45 @@ jobs:
           kubectl apply -f kubernetes-deployment.yaml
           kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
             ${{ env.DEPLOYMENT_NAME }}=${{ env.IMAGE }}:${{ github.sha }}
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=15m
-          kubectl get pods -l app=mlops-app
+          
+          # Attendre avec timeout (continuer même si erreur)
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=15m || true
+          
+          echo ""
+          echo "========================================="
+          echo "📊 POD STATUS"
+          echo "========================================="
+          kubectl get pods -l app=mlops-app -o wide
+          
+          echo ""
+          echo "========================================="
+          echo "🔍 POD DETAILS (DESCRIBE)"
+          echo "========================================="
+          kubectl describe pods -l app=mlops-app
+          
+          echo ""
+          echo "========================================="
+          echo "📝 POD LOGS"
+          echo "========================================="
+          for pod in $(kubectl get pods -l app=mlops-app -o jsonpath='{.items[*].metadata.name}'); do
+            echo "--- Logs for $pod ---"
+            kubectl logs $pod --tail=50 || echo "No logs available for $pod"
+          done
+          
+          echo ""
+          echo "========================================="
+          echo "⚙️ DEPLOYMENT STATUS"
+          echo "========================================="
+          kubectl describe deployment/${{ env.DEPLOYMENT_NAME }}
+          
+          echo ""
+          echo "========================================="
+          echo "📅 RECENT EVENTS"
+          echo "========================================="
+          kubectl get events --sort-by='.lastTimestamp' | tail -30
+          
+          echo ""
+          echo "========================================="
+          echo "🌐 SERVICE STATUS"
+          echo "========================================="
           kubectl get service mlops-service
