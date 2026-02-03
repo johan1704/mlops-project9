@@ -51,8 +51,4 @@ jobs:
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f kubernetes-deployment.yaml
-          kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
-            ${{ env.DEPLOYMENT_NAME }}=${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
-          kubectl get pods
-          kubectl get service mlops-service
+          kubectl set image deployment/$DEPLOYMENT_NAME $DEPLOYMENT_NAME=$IMAGE:$GITHUB_SHA
