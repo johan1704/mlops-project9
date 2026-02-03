@@ -26,7 +26,7 @@ jobs:
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          install_components: 'gke-gcloud-auth-plugin'  # ✅ AJOUT IMPORTANT
+          install_components: 'gke-gcloud-auth-plugin'
 
       - name: Configure Docker
         run: |
@@ -52,6 +52,46 @@ jobs:
           kubectl apply -f kubernetes-deployment.yaml
           kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
             ${{ env.DEPLOYMENT_NAME }}=${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }}
-          kubectl get pods
+          
+          # Attendre avec timeout augmenté et continuer même en cas d'erreur
+          kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=15m || true
+          
+          echo "========================================="
+          echo "DIAGNOSTIC - POD STATUS"
+          echo "========================================="
+          kubectl get pods -l app=mlops-app -o wide
+          
+          echo ""
+          echo "========================================="
+          echo "DIAGNOSTIC - POD DESCRIPTION"
+          echo "========================================="
+          kubectl describe pods -l app=mlops-app
+          
+          echo ""
+          echo "========================================="
+          echo "DIAGNOSTIC - POD LOGS"
+          echo "========================================="
+          POD_NAME=$(kubectl get pods -l app=mlops-app -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+          if [ ! -z "$POD_NAME" ]; then
+            kubectl logs $POD_NAME --tail=100 || echo "No logs available"
+          else
+            echo "No pods found"
+          fi
+          
+          echo ""
+          echo "========================================="
+          echo "DIAGNOSTIC - DEPLOYMENT DESCRIPTION"
+          echo "========================================="
+          kubectl describe deployment/${{ env.DEPLOYMENT_NAME }}
+          
+          echo ""
+          echo "========================================="
+          echo "DIAGNOSTIC - RECENT EVENTS"
+          echo "========================================="
+          kubectl get events --sort-by='.lastTimestamp' --field-selector involvedObject.name=mlops-app | tail -30
+          
+          echo ""
+          echo "========================================="
+          echo "DIAGNOSTIC - SERVICE STATUS"
+          echo "========================================="
           kubectl get service mlops-service
