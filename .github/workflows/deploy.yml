@@ -8,55 +8,37 @@ env:
   GKE_CLUSTER: "my-cluster"
   GKE_REGION: "us-central1"
   DEPLOYMENT_NAME: "mlops-app"
-  REGISTRY: "us-central1-docker.pkg.dev"
-  REPOSITORY: "project-1680e564-23e9-4e9c-b2b/my-repo"
-  IMAGE_NAME: "mlops-app"
+  REPOSITORY: "us-central1-docker.pkg.dev/project-1680e564-23e9-4e9c-b2b/my-repo"
+  IMAGE: "us-central1-docker.pkg.dev/project-1680e564-23e9-4e9c-b2b/my-repo/mlops-app"
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # ✅ Version mise à jour
 
       - name: Authenticate with Google Cloud
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v2  # ✅ Version mise à jour
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
-          install_components: 'gke-gcloud-auth-plugin'
-
-      # ✅ AJOUT: Donner les permissions Artifact Registry au service account GKE
-      - name: Grant GKE Service Account Access to Artifact Registry
-        run: |
-          # Récupérer le service account du cluster GKE
-          GKE_SA=$(gcloud container clusters describe ${{ env.GKE_CLUSTER }} \
-            --region ${{ env.GKE_REGION }} \
-            --format='value(nodeConfig.serviceAccount)')
-          
-          echo "GKE Service Account: $GKE_SA"
-          
-          # Donner les permissions de lecture sur Artifact Registry
-          gcloud artifacts repositories add-iam-policy-binding my-repo \
-            --location=us-central1 \
-            --member="serviceAccount:$GKE_SA" \
-            --role="roles/artifactregistry.reader"
+          install_components: 'gke-gcloud-auth-plugin'  # ✅ Nécessaire pour kubectl
 
       - name: Configure Docker
         run: |
-          gcloud auth configure-docker ${{ env.REGISTRY }}
+          gcloud config set project ${{ env.PROJECT_ID }}
+          gcloud auth configure-docker us-central1-docker.pkg.dev
 
       - name: Build and Push Docker Image
         run: |
-          docker build \
-            -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
-            -t ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest \
-            .
-          docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-          docker push ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:latest
+          docker build -t ${{ env.IMAGE }}:${{ github.sha }} -t ${{ env.IMAGE }}:latest .
+          docker push ${{ env.IMAGE }}:${{ github.sha }}
+          docker push ${{ env.IMAGE }}:latest
 
       - name: Get GKE Credentials
         run: |
@@ -68,7 +50,7 @@ jobs:
         run: |
           kubectl apply -f kubernetes-deployment.yaml
           kubectl set image deployment/${{ env.DEPLOYMENT_NAME }} \
-            ${{ env.DEPLOYMENT_NAME }}=${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.DEPLOYMENT_NAME }}=${{ env.IMAGE }}:${{ github.sha }}
           kubectl rollout status deployment/${{ env.DEPLOYMENT_NAME }} --timeout=15m
-          kubectl get pods
+          kubectl get pods -l app=mlops-app
           kubectl get service mlops-service
