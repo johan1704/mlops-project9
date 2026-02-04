@@ -57,19 +57,19 @@ jobs:
           
           echo ""
           echo "========================================="
-          echo "📊 POD STATUS"
+          echo " POD STATUS"
           echo "========================================="
           kubectl get pods -l app=mlops-app -o wide
           
           echo ""
           echo "========================================="
-          echo "🔍 POD DETAILS (DESCRIBE)"
+          echo " POD DETAILS (DESCRIBE)"
           echo "========================================="
           kubectl describe pods -l app=mlops-app
           
           echo ""
           echo "========================================="
-          echo "📝 POD LOGS"
+          echo " POD LOGS"
           echo "========================================="
           for pod in $(kubectl get pods -l app=mlops-app -o jsonpath='{.items[*].metadata.name}'); do
             echo "--- Logs for $pod ---"
@@ -78,18 +78,18 @@ jobs:
           
           echo ""
           echo "========================================="
-          echo "⚙️ DEPLOYMENT STATUS"
+          echo " DEPLOYMENT STATUS"
           echo "========================================="
           kubectl describe deployment/${{ env.DEPLOYMENT_NAME }}
           
           echo ""
           echo "========================================="
-          echo "📅 RECENT EVENTS"
+          echo " RECENT EVENTS"
           echo "========================================="
           kubectl get events --sort-by='.lastTimestamp' | tail -30
           
           echo ""
           echo "========================================="
-          echo "🌐 SERVICE STATUS"
+          echo " SERVICE STATUS"
           echo "========================================="
           kubectl get service mlops-service
