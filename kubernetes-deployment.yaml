@@ -19,11 +19,11 @@ spec:
         - containerPort: 5000
         resources:
           requests:
-            memory: "256Mi"  # Réduit de 512Mi
-            cpu: "250m"      # Réduit de 500m
+            memory: "256Mi"  
+            cpu: "250m"      
           limits:
-            memory: "512Mi"  # Réduit de 1Gi
-            cpu: "500m"      # Réduit de 1000m
+            memory: "512Mi"  
+            cpu: "500m"      
 ---
 apiVersion: v1
 kind: Service

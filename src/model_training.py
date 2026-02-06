@@ -341,7 +341,6 @@ class ModelTraining:
             raise
 
 if __name__ == "__main__":
-    # Option 1: Default parameters
     trainer = ModelTraining(
         input_path="artifacts/processed",
         output_path="artifacts/models"

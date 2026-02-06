@@ -128,9 +128,9 @@ def preprocess_input(form_data):
         print(f"Preprocessing error: {e}")
         raise
 
-# ========================
+# ===============================================
 # ROUTES
-# ========================
+# ===============================================
 @app.route("/", methods=["GET", "POST"])
 def index():
     """Main page with prediction form"""
@@ -181,7 +181,7 @@ def health():
         "timestamp": datetime.now().isoformat()
     }
 
-# ========================
+# ==============================
 # RUN APP
 # ========================
 if __name__ == "__main__":
