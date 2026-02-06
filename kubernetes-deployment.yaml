@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: mlops-app
 spec:
-  replicas: 1  
+  replicas: 2
   selector:
     matchLabels:
       app: mlops-app
@@ -17,14 +17,9 @@ spec:
         image: us-central1-docker.pkg.dev/project-1680e564-23e9-4e9c-b2b/my-repo/mlops-app:latest
         ports:
         - containerPort: 5000
-        resources:
-          requests:
-            memory: "256Mi"  
-            cpu: "250m"      
-          limits:
-            memory: "512Mi"  
-            cpu: "500m"      
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:

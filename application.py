@@ -7,18 +7,18 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# ========================
+# ==================================
 # PATHS TO ARTIFACTS
-# ========================
+# ==================================
 ARTIFACTS_BASE = "artifacts"
 MODEL_PATH = os.path.join(ARTIFACTS_BASE, "models", "model.pkl")
 ENCODERS_PATH = os.path.join(ARTIFACTS_BASE, "processed", "feature_encoders.pkl")
 TARGET_ENCODER_PATH = os.path.join(ARTIFACTS_BASE, "processed", "target_encoder.pkl")
 FILL_VALUES_PATH = os.path.join(ARTIFACTS_BASE, "processed", "fill_values.pkl")
 
-# ========================
+# ==================================
 # LOAD ALL ARTIFACTS
-# ========================
+# ==================================
 try:
     model = joblib.load(MODEL_PATH)
     feature_encoders = joblib.load(ENCODERS_PATH)
@@ -40,9 +40,9 @@ except Exception as e:
     print(f" Error loading artifacts: {e}")
     raise
 
-# ========================
+# =============================
 # FEATURES DEFINITION
-# ========================
+# ============================
 NUMERICAL_FEATURES = [
     'MinTemp', 'MaxTemp', 'Rainfall', 'Evaporation', 'Sunshine',
     'WindGustSpeed', 'WindSpeed9am', 'WindSpeed3pm',
@@ -63,9 +63,9 @@ FEATURE_ORDER = [
     'Temp3pm', 'RainToday', 'Year', 'Month', 'Day'
 ]
 
-# ========================
+# ===========================
 # PREPROCESSING FUNCTION
-# ========================
+# ===========================
 def preprocess_input(form_data):
     """
     Preprocess raw form data using saved artifacts
@@ -183,6 +183,6 @@ def health():
 
 # ==============================
 # RUN APP
-# ========================
+# ==============================
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=5000)
